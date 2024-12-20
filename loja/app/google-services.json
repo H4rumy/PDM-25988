@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "51617288945",
+    "project_id": "carrinhocompras-ac3f7",
+    "storage_bucket": "carrinhocompras-ac3f7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:51617288945:android:1f549d79c84b82cede4f50",
+        "android_client_info": {
+          "package_name": "com.example.loja"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2w4RTc6QLqJw4GxEhY5iaeLgfi90O2Hk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
