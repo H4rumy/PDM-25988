@@ -5,8 +5,8 @@ data class NewsDetails(
     val title: String,
     val description: String?,
     val url: String?,
-    val imageUrl: String?,
-    val publishedAt: String?,
+    val image_url: String?,
+    val published_at: String?,
     val source: String?,
     val categories: List<String>?
 )

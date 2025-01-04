@@ -7,7 +7,7 @@ import com.example.newslist.domain.repository.NewsRepository
 
 class NewsRepositoryImpl (private val api: NewsApi) :  NewsRepository {
     override suspend fun getNews(): List<News> {
-        val response = api.getNews("Jbyll1BrCZPElS0TRiZ5KuFcNsw47p6fHYHJFO8M")
+        val response = api.getNews("XPEV1RnPRZD7aj5p9bN1vAZQ463KNqgcGn40x5nO")
         return response.data.map { it.toNews() }
     }
 

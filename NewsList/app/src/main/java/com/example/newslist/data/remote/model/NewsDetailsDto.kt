@@ -7,8 +7,8 @@ data class NewsDetailsDto(
     val title: String,
     val description: String?,
     val url: String?,
-    val imageUrl: String?,
-    val publishedAt: String?,
+    val image_url: String?,
+    val published_at: String?,
     val source: String?,
     val categories: List<String>?
 ) {
@@ -18,8 +18,8 @@ data class NewsDetailsDto(
             title = title,
             description = description,
             url = url,
-            imageUrl = imageUrl,
-            publishedAt = publishedAt,
+            image_url = image_url,
+            published_at = published_at,
             source = source,
             categories = categories
         )

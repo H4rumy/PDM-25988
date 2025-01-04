@@ -51,6 +51,7 @@ android {
 
 dependencies {
 
+    implementation ("io.coil-kt:coil-compose:2.2.2")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation ("androidx.activity:activity-compose:1.8.0")
     implementation(libs.retrofit)

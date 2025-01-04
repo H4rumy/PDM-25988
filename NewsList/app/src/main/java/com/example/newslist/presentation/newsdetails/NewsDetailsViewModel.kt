@@ -22,7 +22,7 @@ class NewsDetailsViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 isLoading.value = true
-                val apiToken = "Jbyll1BrCZPElS0TRiZ5KuFcNsw47p6fHYHJFO8M"
+                val apiToken = "XPEV1RnPRZD7aj5p9bN1vAZQ463KNqgcGn40x5nO"
                 newsDetails.value = getNewsDetailsUseCase(uuid, apiToken)
             } catch (e: Exception) {
                 newsDetails.value = null
