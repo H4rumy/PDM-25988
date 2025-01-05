@@ -18,7 +18,9 @@ fun AppNavigation(
     navController: NavHostController = rememberNavController(),
     startDestination: String) {
 
-    NavHost(navController = navController, startDestination = startDestination) {
+    //startDestination
+
+    NavHost(navController = navController, startDestination = "PRODUTOS") {
         composable(Routes.LOGIN) {
             LoginScreen(navController = navController)
         }
