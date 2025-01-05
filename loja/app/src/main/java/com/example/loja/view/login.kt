@@ -1,88 +1,127 @@
 package com.example.loja.view
 
-import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.ClickableText
-import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.loja.Componentes.CustomButton
+import com.example.loja.Componentes.CustomTextField
+import com.example.loja.Navigation.Routes.PRODUTOS
+import com.example.loja.Componentes.Orange
 import com.example.loja.viewmodel.LoginViewModel
+import kotlinx.coroutines.launch
 
 
 @Composable
-fun LoginScreen(loginViewModel: LoginViewModel, navController: NavHostController) {
-    var email by remember { mutableStateOf("") }
-    var senha by remember { mutableStateOf("") }
-    val loginState by loginViewModel.loginState.collectAsState()
+fun LoginScreen(navController: NavController) {
 
-    val context = LocalContext.current
+    val loginViewModel: LoginViewModel = viewModel()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    val email by loginViewModel.email.collectAsState()
+    val password by loginViewModel.password.collectAsState()
+    val errorMessage by loginViewModel.errorMessage.collectAsState()
+    val isLoading by loginViewModel.isLoading.collectAsState()
+    val isLoginSuccessful by loginViewModel.isLoginSuccessful.collectAsState()
+
+    LaunchedEffect(isLoginSuccessful) {
+        if (isLoginSuccessful) {
+            navController.navigate(PRODUTOS) {
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Campos de entrada (email, senha, etc.)
-        TextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
-        TextField(
-            value = senha,
-            onValueChange = { senha = it },
-            label = { Text("Senha") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Botão de login
-        Button(onClick = {
-            if (email.isNotEmpty() && senha.isNotEmpty()) {
-                loginViewModel.login(email, senha)
-            } else {
-                Toast.makeText(context, "Preencha todos os campos corretamente", Toast.LENGTH_SHORT).show()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .padding(bottom = 16.dp)
+            ) {
+                Text(
+                    text = "Email",
+                    color = Color.Black,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                CustomTextField(
+                    placeholder = "Escreva aqui...",
+                    value = email,
+                    onValueChange = { loginViewModel.onEmailChange(it) }
+                )
             }
-        }) {
-            Text("Entrar")
-        }
 
-        // Exibe mensagem de erro ou sucesso após o login
-        if (loginState != null) {
-            Text("Bem-vindo, ${loginState?.email}")
-        } else {
-            Text("Erro no login.")
-        }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = "Palavra-Passe",
+                    color = Color.Black,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                CustomTextField(
+                    placeholder = "Escreva aqui...",
+                    value = password,
+                    onValueChange = { loginViewModel.onPasswordChange(it) }
+                )
 
-        // Texto para navegar para a tela de registro
-        Spacer(modifier = Modifier.height(16.dp))
-        ClickableText(
-            text = buildAnnotatedString {
-                append("Não tem uma conta? ")
-                // Estilo do texto "Registrar"
-                append("Registrar", TextStyle(color = Color.Blue).toString())
-            },
-            onClick = {
-                // Navega para a tela de registro
-                navController.navigate("register_screen")
             }
-        )
+
+            // Mensagem de erro, se houver
+            if (errorMessage.isNotEmpty()) {
+                Text(
+                    text = errorMessage,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
+            // Botão de login
+            CustomButton(
+                label = if (isLoading) "..." else "Entrar",
+                color = Orange,
+                onClick = {
+                    if (!isLoading) {
+                        // Lança a corrotina para chamar a função suspensa
+                        loginViewModel.viewModelScope.launch {
+                            loginViewModel.signIn(email, password)
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(0.32f)
+            )
+            // Botão de registo
+            CustomButton(
+                label = if (isLoading) "..." else "Registar",
+                color = Orange,
+                onClick = {
+                    navController.navigate("registo") // Navega para a página de registo
+                },
+                modifier = Modifier.fillMaxWidth(0.32f)
+            )
+
+        }
     }
 }

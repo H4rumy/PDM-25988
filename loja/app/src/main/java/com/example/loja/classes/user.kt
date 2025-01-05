@@ -4,6 +4,6 @@ class User(
     val uid: Int,
     val nome: String,
     val email: String,
-    val senha: String,
+    val password: String,
     val carrinho: Carrinho = Carrinho()
 )
