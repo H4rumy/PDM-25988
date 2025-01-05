@@ -18,15 +18,15 @@ class ProdutosViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow("")
     val errorMessage: StateFlow<String> = _errorMessage
 
-    private val _isLoading = MutableStateFlow(true)  // Adiciona o estado de carregamento
-    val isLoading: StateFlow<Boolean> = _isLoading  // Expose para a UI
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     private val firestore = FirebaseFirestore.getInstance()
 
     // Função para carregar os produtos do Firestore
     fun carregarProdutos() {
         viewModelScope.launch {
-            _isLoading.value = true  // Começa o carregamento
+            _isLoading.value = true
 
             try {
                 firestore.collection("produto")
@@ -41,15 +41,26 @@ class ProdutosViewModel : ViewModel() {
                             listaProdutos.add(Produto(id = id, nome = nome, preco = preco))
                         }
                         _produtos.value = listaProdutos
-                        _isLoading.value = false  // Termina o carregamento
+                        _isLoading.value = false
                     }
                     .addOnFailureListener { exception ->
                         _errorMessage.value = "Erro ao carregar produtos: ${exception.message}"
-                        _isLoading.value = false  // Termina o carregamento em caso de erro
+                        _isLoading.value = false
                     }
             } catch (e: Exception) {
                 _errorMessage.value = "Erro desconhecido: ${e.message}"
-                _isLoading.value = false  // Termina o carregamento em caso de erro
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // Função para adicionar produto ao carrinho
+    fun adicionarAoCarrinho(produto: Produto, carrinhoViewModel: CarrinhoViewModel) {
+        viewModelScope.launch {
+            try {
+                carrinhoViewModel.adicionarProdutoAoCarrinho(produto)
+            } catch (e: Exception) {
+                _errorMessage.value = "Erro ao adicionar ao carrinho: ${e.message}"
             }
         }
     }

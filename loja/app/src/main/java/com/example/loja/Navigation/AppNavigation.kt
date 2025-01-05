@@ -33,6 +33,9 @@ fun AppNavigation(
         composable(Routes.CARRINHO)  {
             CarrinhoScreen(navController = navController)
         }
+        composable(Routes.PRODUTOCARDCARRINHO)  {
+            CarrinhoScreen(navController = navController)
+        }
 
     }
 }

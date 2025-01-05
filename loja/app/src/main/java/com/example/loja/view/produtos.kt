@@ -1,5 +1,6 @@
 package com.example.loja.view
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,28 +11,28 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.loja.Navigation.Routes
 import com.example.loja.classes.Produto
+import com.example.loja.viewmodel.CarrinhoViewModel
 import com.example.loja.viewmodel.ProdutosViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
+
+
 @Composable
 fun ProdutosScreen(navController: NavController) {
+    val carrinhoViewModel: CarrinhoViewModel = viewModel()
     val produtosViewModel: ProdutosViewModel = viewModel()
-
     val produtos by produtosViewModel.produtos.collectAsState()
     val errorMessage by produtosViewModel.errorMessage.collectAsState()
 
-    // Carregar os produtos ao abrir a tela
     LaunchedEffect(Unit) {
         produtosViewModel.carregarProdutos()
     }
-
-    // Estado para o carrinho (exemplo de lista local)
-    var carrinho by remember { mutableStateOf<List<Produto>>(emptyList()) }
 
     Scaffold(
         topBar = {
@@ -45,7 +46,7 @@ fun ProdutosScreen(navController: NavController) {
             )
         },
         content = { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) { // Aplicando o contentPadding aqui
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
                 if (errorMessage.isNotEmpty()) {
                     Text(
                         text = errorMessage,
@@ -64,10 +65,7 @@ fun ProdutosScreen(navController: NavController) {
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(produtos) { produto ->
-                            ProdutoCard(produto, onAddToCart = {
-                                // Adicionar produto à lista de carrinho
-                                carrinho = carrinho + produto
-                            })
+                            ProdutoCard(produto, carrinhoViewModel) // Passando o CarrinhoViewModel para o ProdutoCard
                         }
                     }
                 }
@@ -77,7 +75,7 @@ fun ProdutosScreen(navController: NavController) {
 }
 
 @Composable
-fun ProdutoCard(produto: Produto, onAddToCart: (Produto) -> Unit) {
+fun ProdutoCard(produto: Produto, carrinhoViewModel: CarrinhoViewModel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -92,11 +90,8 @@ fun ProdutoCard(produto: Produto, onAddToCart: (Produto) -> Unit) {
                 text = "Preço: ${produto.preco} €",
                 style = MaterialTheme.typography.bodyMedium
             )
-
-            // Botão de adicionar ao carrinho
             Button(
-                onClick = { onAddToCart(produto) },
-                modifier = Modifier.padding(top = 8.dp)
+                onClick = { carrinhoViewModel.adicionarProdutoAoCarrinho(produto) }
             ) {
                 Text("Adicionar ao Carrinho")
             }

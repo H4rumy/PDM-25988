@@ -6,5 +6,6 @@ object Routes {
     const val CARRINHO = "carrinho"
     const val PRODUTOS = "produtos"
     const val REGISTO = "registo"
+    const val PRODUTOCARDCARRINHO = "produtoCardCarrinho"
 
 }
