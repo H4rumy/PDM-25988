@@ -31,91 +31,105 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun RegistoScreen(navController: NavController) {
-
     val registoViewModel: RegistoViewModel = viewModel()
-    val context = LocalContext.current
 
-    // State to hold the text input for each field
-    var nome by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val email by registoViewModel.email.collectAsState()
+    val password by registoViewModel.password.collectAsState()
+    val confirmPassword by registoViewModel.confirmPassword.collectAsState()
+    val errorMessage by registoViewModel.errorMessage.collectAsState()
+    val isLoading by registoViewModel.isLoading.collectAsState()
+    val isRegistrationSuccessful by registoViewModel.isRegistrationSuccessful.collectAsState()
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    LaunchedEffect(isRegistrationSuccessful) {
+        if (isRegistrationSuccessful) {
+            navController.navigate("login") {
+                popUpTo("registo") { inclusive = true }
+            }
+        }
+    }
 
-        // Column to organize TextFields, Button
+    Box(modifier = Modifier.fillMaxSize())
+    {
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 30.dp),
+                .align(Alignment.Center)
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .padding(bottom = 16.dp)
-            ) {
-                // Nome
+            ){
+            // Campo Email
                 Text(
-                    text = "Nome *",
+                    text = "Email",
                     color = Color.Black,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 CustomTextField(
-                    placeholder = "Digite o nome",
-                    value = nome,
-                    onValueChange = { nome = it }
+                placeholder = "Email",
+                value = email,
+                onValueChange = { registoViewModel.onEmailChange(it) },
                 )
-                Spacer(modifier = Modifier.height(12.dp))
 
-                // Email
-                Text(
-                    text = "Email *",
-                    color = Color.Black,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                CustomTextField(
-                    placeholder = "Digite o email",
-                    value = email,
-                    onValueChange = { email = it }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Senha
-                Text(
-                    text = "Senha *",
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                CustomTextField(
-                    placeholder = "Digite a senha",
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .padding(bottom = 32.dp)
+                ) {
+                    Text(
+                        text = "Palavra-Passe",
+                        color = Color.Black,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    CustomTextField(
+                    placeholder = "Palavra-Passe",
                     value = password,
-                    onValueChange = { password = it }
+                    onValueChange = { registoViewModel.onPasswordChange(it) },
+                    )
+                }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Campo Confirmar Palavra-passe
+            CustomTextField(
+                placeholder = "Confirmar Palavra-Passe",
+                value = confirmPassword,
+                onValueChange = { registoViewModel.onConfirmPasswordChange(it) },
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Mensagem de erro
+            if (errorMessage.isNotEmpty()) {
+                Text(
+                    text = errorMessage,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
-                Spacer(modifier = Modifier.height(12.dp))
             }
 
+            // Botão de registo
             CustomButton(
-                label = "Registar",
+                label = if (isLoading) "..." else "Registar",
                 color = Orange,
-                modifier = Modifier.fillMaxWidth(0.50f),
                 onClick = {
-                    if (nome.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                        Toast.makeText(
-                            context,
-                            "Por favor, preencha todos os campos obrigatórios.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        return@CustomButton
+                    if (!isLoading) {
+                        registoViewModel.viewModelScope.launch {
+                            registoViewModel.signUp(email, password, confirmPassword)
+                        }
                     }
-
-                }
+                },
+                modifier = Modifier.fillMaxWidth(0.5f)
             )
-        }
+
+            //Spacer(modifier = Modifier.height(8.dp))
+
+
+        }}
     }
 }
-

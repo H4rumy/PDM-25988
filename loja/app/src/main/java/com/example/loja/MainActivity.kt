@@ -30,8 +30,10 @@ class MainActivity : ComponentActivity() {
         val auth = FirebaseAuth.getInstance()
 
         setContent {
-            val isLoggedIn = remember { mutableStateOf(auth.currentUser != null ) }
-            AppNavigation(startDestination = if (isLoggedIn.value) Routes.LOGIN else Routes.LOGIN)
+            //val isLoggedIn = remember { mutableStateOf(auth.currentUser != null ) }
+            //AppNavigation(startDestination = if (isLoggedIn.value) Routes.PRODUTOS else Routes.LOGIN)
+            AppNavigation(startDestination = Routes.LOGIN)
+
         }
     }
 }

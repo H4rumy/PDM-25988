@@ -17,6 +17,7 @@ import com.example.loja.Componentes.CustomButton
 import com.example.loja.Componentes.CustomTextField
 import com.example.loja.Navigation.Routes.PRODUTOS
 import com.example.loja.Componentes.Orange
+import com.example.loja.Navigation.Routes
 import com.example.loja.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
@@ -112,13 +113,11 @@ fun LoginScreen(navController: NavController) {
                 },
                 modifier = Modifier.fillMaxWidth(0.32f)
             )
-            // Botão de registo
+            // caminho para registoScreen
             CustomButton(
-                label = if (isLoading) "..." else "Registar",
+                label = "Registar",
                 color = Orange,
-                onClick = {
-                    navController.navigate("registo") // Navega para a página de registo
-                },
+                onClick = {navController.navigate(Routes.REGISTO)}, // navigate to login screen
                 modifier = Modifier.fillMaxWidth(0.32f)
             )
 
