@@ -104,11 +104,7 @@ fun LoginScreen(navController: NavController) {
                 label = if (isLoading) "..." else "Entrar",
                 color = Orange,
                 onClick = {
-                    if (!isLoading) {
-                        // Lança a corrotina para chamar a função suspensa
-                        loginViewModel.viewModelScope.launch {
-                            loginViewModel.signIn(email, password)
-                        }
+                    if (!isLoading) {navController.navigate(Routes.PRODUTOS)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(0.32f)
