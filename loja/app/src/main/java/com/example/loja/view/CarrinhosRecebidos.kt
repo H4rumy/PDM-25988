@@ -43,6 +43,7 @@ import com.example.loja.viewmodel.CarrinhoRecebido
 import com.example.loja.viewmodel.PartilharViewModel
 import com.example.loja.viewmodel.ReceberViewModel
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.getValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +52,8 @@ fun CarrinhosRecebidosScreen(
 ) {
     val viewModel: ReceberViewModel = viewModel()
     val carrinhosRecebidos = viewModel.carrinhosRecebidos.collectAsState().value
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     Scaffold(
         topBar = {

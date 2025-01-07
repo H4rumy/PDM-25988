@@ -20,6 +20,8 @@ import com.example.loja.view.CompartilharCarrinhoScreen
 import com.example.loja.view.LoginScreen
 import com.example.loja.view.ProdutosScreen
 import com.example.loja.viewmodel.LoginViewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -53,6 +55,18 @@ fun AppNavigation(
         }
         composable(Routes.CARRINHOSRECEBIDOS) {
             com.example.loja.view.CarrinhosRecebidosScreen(navController = navController)
+        }
+        composable(
+            route = "${Routes.CARRINHO}/{userId}",
+            arguments = listOf(
+                navArgument("userId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId")
+            CarrinhoScreen(
+                navController = navController,
+                userId = userId
+            )
         }
 
     }

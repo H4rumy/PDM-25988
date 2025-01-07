@@ -26,6 +26,9 @@ class CarrinhoViewModel : ViewModel() {
     private val _itensCarrinho = MutableStateFlow<List<CarrinhoItem>>(emptyList())
     val itensCarrinho: StateFlow<List<CarrinhoItem>> = _itensCarrinho
 
+    private val _totalCarrinho = MutableStateFlow(0.0)
+    val totalCarrinho: StateFlow<Double> = _totalCarrinho
+
     init {
         // Iniciar observação do carrinho
         observarCarrinho()
@@ -79,6 +82,60 @@ class CarrinhoViewModel : ViewModel() {
 
                 _itensCarrinho.value = itens
                 Log.d("CarrinhoViewModel", "Itens carregados: ${itens.size}")
+            }
+    }
+
+    fun carregarCarrinhoDeOutroUser(userId: String) {
+        viewModelScope.launch {
+            try {
+                firestore.collection("carrinho")  // Usando a mesma coleção "carrinho"
+                    .whereEqualTo("userId", userId)
+                    .addSnapshotListener { snapshot, e ->
+                        if (e != null) {
+                            Log.e("CarrinhoViewModel", "Erro ao carregar carrinho: ", e)
+                            return@addSnapshotListener
+                        }
+
+                        val itens = snapshot?.documents?.mapNotNull { doc ->
+                            try {
+                                CarrinhoItem(
+                                    id = doc.id,
+                                    userId = doc.getString("userId") ?: "",
+                                    productId = doc.getString("productId") ?: "",
+                                    quantidade = doc.getLong("quantidade")?.toInt() ?: 1,
+                                    nome = doc.getString("nome") ?: "",
+                                    preco = doc.getDouble("preco") as Number? ?: 0.0,
+                                    imagemUrl = doc.getString("imagemUrl") ?: ""
+                                )
+                            } catch (e: Exception) {
+                                Log.e("CarrinhoViewModel", "Erro ao converter documento: ", e)
+                                null
+                            }
+                        } ?: emptyList()
+
+                        _itensCarrinho.value = itens
+                        _carrinhoCount.value = itens.sumOf { it.quantidade }
+                        _totalCarrinho.value = itens.sumOf { it.preco.toDouble() * it.quantidade }
+
+                        Log.d("CarrinhoViewModel", "Carrinho carregado: ${itens.size} itens")
+                    }
+            } catch (e: Exception) {
+                Log.e("CarrinhoViewModel", "Erro ao carregar carrinho: ", e)
+            }
+        }
+    }
+
+    fun buscarEmailDoUser(userId: String, onEmailFound: (String) -> Unit) {
+        firestore.collection("users")
+            .whereEqualTo("uid", userId)
+            .get()
+            .addOnSuccessListener { documents ->
+                val email = documents.documents.firstOrNull()?.getString("email") ?: "Usuário"
+                onEmailFound(email)
+            }
+            .addOnFailureListener { e ->
+                Log.e("CarrinhoViewModel", "Erro ao buscar email do usuário", e)
+                onEmailFound("Usuário")
             }
     }
 
