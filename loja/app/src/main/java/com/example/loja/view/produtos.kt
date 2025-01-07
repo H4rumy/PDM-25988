@@ -91,7 +91,7 @@ fun ProdutoCard(produto: Produto, carrinhoViewModel: CarrinhoViewModel) {
                 style = MaterialTheme.typography.bodyMedium
             )
             Button(
-                onClick = { carrinhoViewModel.adicionarProdutoAoCarrinho(produto) }
+                onClick = {  }
             ) {
                 Text("Adicionar ao Carrinho")
             }

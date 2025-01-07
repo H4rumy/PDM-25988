@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, viewModel: LoginViewModel) {
 
     val loginViewModel: LoginViewModel = viewModel()
 
@@ -104,7 +104,10 @@ fun LoginScreen(navController: NavController) {
                 label = if (isLoading) "..." else "Entrar",
                 color = Orange,
                 onClick = {
-                    if (!isLoading) {navController.navigate(Routes.PRODUTOS)
+                    if (!isLoading) {
+                        viewModel.viewModelScope.launch {
+                            viewModel.signIn(email, password)
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(0.32f)

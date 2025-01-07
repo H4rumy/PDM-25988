@@ -35,8 +35,6 @@ fun ProdutoCardCarrinho(navController: NavController, produto: Produto, carrinho
 
             Button(
                 onClick = {
-                    // Adiciona o produto ao carrinho ao clicar no botão
-                    carrinhoViewModel.adicionarProdutoAoCarrinho(produto)
                 }
             ) {
                 Text("Adicionar ao carrinho")

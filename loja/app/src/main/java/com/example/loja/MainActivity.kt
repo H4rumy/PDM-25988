@@ -18,6 +18,7 @@ import com.example.loja.Navigation.Routes
 import com.example.loja.repository.AuthRepository
 import com.example.loja.viewmodel.RegistoViewModel
 import com.example.loja.view.LoginScreen
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
@@ -26,13 +27,10 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        val auth = FirebaseAuth.getInstance()
+        FirebaseApp.initializeApp(this)
 
         setContent {
-            //val isLoggedIn = remember { mutableStateOf(auth.currentUser != null ) }
-            //AppNavigation(startDestination = if (isLoggedIn.value) Routes.PRODUTOS else Routes.LOGIN)
-            AppNavigation(startDestination = Routes.LOGIN)
+            AppNavigation()
 
         }
     }

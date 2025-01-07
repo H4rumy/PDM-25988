@@ -58,7 +58,7 @@ class ProdutosViewModel : ViewModel() {
     fun adicionarAoCarrinho(produto: Produto, carrinhoViewModel: CarrinhoViewModel) {
         viewModelScope.launch {
             try {
-                carrinhoViewModel.adicionarProdutoAoCarrinho(produto)
+
             } catch (e: Exception) {
                 _errorMessage.value = "Erro ao adicionar ao carrinho: ${e.message}"
             }
