@@ -37,8 +37,19 @@ class ProdutosViewModel : ViewModel() {
                             val nome = document.getString("nome") ?: ""
                             val preco = document.getDouble("preco") ?: 0.0
                             val id = document.id
+                            val imagemUrl = document.getString("imagemUrl") ?: "" // Adicionado
 
-                            listaProdutos.add(Produto(id = id, nome = nome, preco = preco))
+                            listaProdutos.add(
+                                Produto(
+                                    id = id,
+                                    nome = nome,
+                                    preco = preco,
+                                    imagemUrl = imagemUrl // Adicionado
+                                )
+                            )
+
+                            // Log para debug
+                            Log.d("ProdutosViewModel", "Produto carregado: $nome, URL: $imagemUrl")
                         }
                         _produtos.value = listaProdutos
                         _isLoading.value = false
@@ -46,10 +57,12 @@ class ProdutosViewModel : ViewModel() {
                     .addOnFailureListener { exception ->
                         _errorMessage.value = "Erro ao carregar produtos: ${exception.message}"
                         _isLoading.value = false
+                        Log.e("ProdutosViewModel", "Erro ao carregar produtos", exception)
                     }
             } catch (e: Exception) {
                 _errorMessage.value = "Erro desconhecido: ${e.message}"
                 _isLoading.value = false
+                Log.e("ProdutosViewModel", "Erro desconhecido", e)
             }
         }
     }

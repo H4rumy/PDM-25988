@@ -6,5 +6,6 @@ data class Produto(
     @DocumentId
     val id: String = "",  // A Firebase atribui o ID automaticamente e é melhor usar String para o ID
     val nome: String = "",
-    val preco: Number = 0.00
+    val preco: Number = 0.00,
+    val imagemUrl: String = ""
 )

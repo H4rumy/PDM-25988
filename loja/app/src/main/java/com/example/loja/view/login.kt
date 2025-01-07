@@ -75,8 +75,8 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel) {
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFFFFFFF),
-                        Color(0xFFF5F5F5)
+                        Color(0xFFFFFAF5),
+                        Color(0xFFFFF5EB)
                     )
                 )
             )
