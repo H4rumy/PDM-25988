@@ -13,110 +13,42 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.tasks.await
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
-
-    // Estados para email, senha, erro e carregamento
-    private val _email = MutableStateFlow("")
-    val email: StateFlow<String> = _email
-
-    private val _password = MutableStateFlow("")
-    val password: StateFlow<String> = _password
-
-    private val _errorMessage = MutableStateFlow("")
-    val errorMessage: StateFlow<String> = _errorMessage
+    private val auth = FirebaseAuth.getInstance()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _isLoginSuccessful = MutableStateFlow(false)
-    val isLoginSuccessful: StateFlow<Boolean> = _isLoginSuccessful
+    private val _errorMessage = MutableStateFlow("")
+    val errorMessage: StateFlow<String> = _errorMessage
 
-    // Guarda o usuário autenticado
-    private val _currentUser = MutableStateFlow<FirebaseUser?>(null)
-    val currentUser: StateFlow<FirebaseUser?> = _currentUser
-
-    private lateinit var auth: FirebaseAuth
-    private lateinit var firestore: FirebaseFirestore
-
-    init {
-        initializeFirebase()
-        checkUserSession()
+    fun isUserLoggedIn(): Boolean {
+        return auth.currentUser != null
     }
 
-    fun onEmailChange(newEmail: String) {
-        _email.value = newEmail
-    }
-
-    fun onPasswordChange(newPassword: String) {
-        _password.value = newPassword
-    }
-
-    fun setErrorMessage(message: String) {
-        _errorMessage.value = message
-    }
-
-    fun clearError() {
-        _errorMessage.value = ""
-    }
-
-    // Método para autenticação
-    suspend fun signIn(email: String, password: String) {
-        if (!::auth.isInitialized) {
-            _errorMessage.value = "Firebase Auth não está inicializado"
-            return
+    suspend fun signIn(email: String, password: String): Boolean {
+        if (email.isEmpty() || password.isEmpty()) {
+            _errorMessage.value = "Por favor, preencha todos os campos"
+            return false
         }
 
         _isLoading.value = true
-        try {
-            val result = auth.signInWithEmailAndPassword(email, password).await()
-            _currentUser.value = result.user
-            _isLoginSuccessful.value = true
+        return try {
+            auth.signInWithEmailAndPassword(email, password).await()
+            _errorMessage.value = ""
+            true
         } catch (e: Exception) {
-            _errorMessage.value = e.message ?: "Erro ao fazer login."
-            _isLoginSuccessful.value = false
+            _errorMessage.value = when {
+                e.message?.contains("password") == true -> "Senha incorreta"
+                e.message?.contains("user") == true -> "Utilizador não encontrado"
+                else -> "Erro ao fazer login: ${e.message}"
+            }
+            false
         } finally {
             _isLoading.value = false
         }
     }
 
-    companion object {
-        fun provideFactory(
-            application: Application
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return LoginViewModel(application) as T
-            }
-        }
-    }
-
-    private fun initializeFirebase() {
-        try {
-            auth = FirebaseAuth.getInstance()
-            firestore = FirebaseFirestore.getInstance()
-            Log.d("LoginViewModel", "Firebase inicializado com sucesso. Usuário atual: ${auth.currentUser?.email}")
-        } catch (e: Exception) {
-            Log.e("LoginViewModel", "Erro ao inicializar Firebase: ${e.message}")
-            _errorMessage.value = "Erro ao inicializar Firebase: ${e.message}"
-        }
-    }
-
-
-    fun checkUserSession() {
-        try {
-            if (::auth.isInitialized) {
-                _currentUser.value = auth.currentUser
-                _isLoginSuccessful.value = auth.currentUser != null
-            }
-        } catch (e: Exception) {
-            _errorMessage.value = "Erro ao verificar sessão: ${e.message}"
-        }
-    }
-
     fun signOut() {
-        if (::auth.isInitialized) {
-            auth.signOut()
-            _currentUser.value = null
-            _isLoginSuccessful.value = false
-        }
+        auth.signOut()
     }
 }

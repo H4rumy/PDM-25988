@@ -23,6 +23,9 @@ class CarrinhoViewModel : ViewModel() {
     private val _carrinhoCount = MutableStateFlow(0)
     val carrinhoCount: StateFlow<Int> = _carrinhoCount
 
+    private val _itensCarrinho = MutableStateFlow<List<CarrinhoItem>>(emptyList())
+    val itensCarrinho: StateFlow<List<CarrinhoItem>> = _itensCarrinho
+
     init {
         // Iniciar observação do carrinho
         observarCarrinho()
@@ -49,48 +52,88 @@ class CarrinhoViewModel : ViewModel() {
 
     // Método público para carregar os produtos do carrinho
     fun carregarProdutosCarrinho(userId: String) {
-        firestore.collection("carrinhos")
-            .document(userId) // Usando o ID do usuário logado
-            .collection("produtos")
-            .get()
-            .addOnSuccessListener { result ->
-                val listaProdutos = mutableListOf<Produto>()
-                for (document in result) {
-                    val nome = document.getString("nome") ?: ""
-                    val preco = document.getDouble("preco") ?: 0.0
-                    val id = document.id
-                    listaProdutos.add(Produto(id = id, nome = nome, preco = preco))
+        firestore.collection("carrinho")
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e("CarrinhoViewModel", "Erro ao carregar carrinho", e)
+                    return@addSnapshotListener
                 }
-                _produtosCarrinho.value = listaProdutos
-            }
-            .addOnFailureListener { exception ->
-                Log.e("CarrinhoViewModel", "Erro ao carregar produtos do carrinho", exception)
+
+                val itens = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        CarrinhoItem(
+                            id = doc.id,
+                            userId = doc.getString("userId") ?: "",
+                            productId = doc.getString("productId") ?: "",
+                            quantidade = doc.getLong("quantidade")?.toInt() ?: 1,
+                            nome = doc.getString("nome") ?: "",
+                            preco = doc.getDouble("preco") as Number? ?: 0.0,
+                            imagemUrl = doc.getString("imagemUrl") ?: ""
+                        )
+                    } catch (e: Exception) {
+                        Log.e("CarrinhoViewModel", "Erro ao converter documento", e)
+                        null
+                    }
+                } ?: emptyList()
+
+                _itensCarrinho.value = itens
+                Log.d("CarrinhoViewModel", "Itens carregados: ${itens.size}")
             }
     }
 
     fun adicionarAoCarrinho(produto: Produto, quantidade: Int = 1) {
         val userId = auth.currentUser?.uid ?: return
 
-        val carrinhoItem = CarrinhoItem(
-            id = UUID.randomUUID().toString(),
-            userId = userId,
-            productId = produto.id,
-            quantidade = quantidade,
-            nome = produto.nome,
-            preco = produto.preco,
-            imagemUrl = produto.imagemUrl
+        val carrinhoItem = hashMapOf(
+            "id" to UUID.randomUUID().toString(),
+            "userId" to userId,
+            "productId" to produto.id,
+            "quantidade" to quantidade,
+            "nome" to produto.nome,
+            "preco" to produto.preco.toDouble(), // Convertendo para Double ao salvar
+            "imagemUrl" to produto.imagemUrl
         )
 
         firestore.collection("carrinho")
-            .document(carrinhoItem.id)
+            .document(carrinhoItem["id"] as String)
             .set(carrinhoItem)
             .addOnSuccessListener {
                 // Item adicionado com sucesso
             }
             .addOnFailureListener { e ->
-                // Tratar erro
+                Log.e("CarrinhoViewModel", "Erro ao adicionar item", e)
             }
     }
+
+    fun removerDoCarrinho(carrinhoItemId: String) {
+        firestore.collection("carrinho")
+            .document(carrinhoItemId)
+            .delete()
+            .addOnFailureListener { e ->
+                Log.e("CarrinhoViewModel", "Erro ao remover item do carrinho", e)
+            }
+    }
+
+    fun calcularTotal(): Double {
+        return itensCarrinho.value.sumOf { item ->
+            item.preco.toDouble() * item.quantidade
+        }
+    }
+
+    fun atualizarQuantidade(itemId: String, novaQuantidade: Int) {
+        if (novaQuantidade <= 0) {
+            removerDoCarrinho(itemId)
+        } else {
+            firestore.collection("carrinho")
+                .document(itemId)
+                .update("quantidade", novaQuantidade)
+                .addOnFailureListener { e ->
+                    Log.e("CarrinhoViewModel", "Erro ao atualizar quantidade", e)
+                }
+        }
+    }
+
 
     fun getCarrinhoItems(onSuccess: (List<CarrinhoItem>) -> Unit) {
         val userId = auth.currentUser?.uid ?: return
@@ -107,6 +150,32 @@ class CarrinhoViewModel : ViewModel() {
                 } ?: emptyList()
 
                 onSuccess(items)
+            }
+    }
+
+    fun carregarCarrinhoCompartilhado(ownerUserId: String) {
+        firestore.collection("carrinho")
+            .whereEqualTo("userId", ownerUserId)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) return@addSnapshotListener
+
+                val itens = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        CarrinhoItem(
+                            id = doc.id,
+                            userId = doc.getString("userId") ?: "",
+                            productId = doc.getString("productId") ?: "",
+                            quantidade = doc.getLong("quantidade")?.toInt() ?: 1,
+                            nome = doc.getString("nome") ?: "",
+                            preco = doc.getDouble("preco") as Number? ?: 0.0,
+                            imagemUrl = doc.getString("imagemUrl") ?: ""
+                        )
+                    } catch (e: Exception) {
+                        null
+                    }
+                } ?: emptyList()
+
+                _itensCarrinho.value = itens
             }
     }
 

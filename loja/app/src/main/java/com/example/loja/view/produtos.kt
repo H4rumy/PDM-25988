@@ -1,5 +1,6 @@
 package com.example.loja.view
 
+import android.app.Application
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -14,7 +15,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,6 +36,7 @@ import com.example.loja.Componentes.Orange
 import com.example.loja.Navigation.Routes
 import com.example.loja.classes.Produto
 import com.example.loja.viewmodel.CarrinhoViewModel
+import com.example.loja.viewmodel.LoginViewModel
 import com.example.loja.viewmodel.ProdutosViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,6 +47,8 @@ fun ProdutosScreen(navController: NavController) {
     val produtos by produtosViewModel.produtos.collectAsState()
     val errorMessage by produtosViewModel.errorMessage.collectAsState()
     val carrinhoCount by carrinhoViewModel.carrinhoCount.collectAsState()
+
+    val loginViewModel: LoginViewModel = viewModel()
 
     LaunchedEffect(Unit) {
         produtosViewModel.carregarProdutos()
@@ -65,6 +71,14 @@ fun ProdutosScreen(navController: NavController) {
                     titleContentColor = Color(0xFF333333)
                 ),
                 actions = {
+                    IconButton(
+                        onClick = { navController.navigate(Routes.CARRINHOSRECEBIDOS) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = "Carrinhos Partilhados"
+                        )
+                    }
                     BadgedBox(
                         badge = {
                             if (carrinhoCount > 0) {
@@ -84,6 +98,19 @@ fun ProdutosScreen(navController: NavController) {
                                 tint = Orange
                             )
                         }
+                    }
+                    IconButton(
+                        onClick = {
+                            loginViewModel.signOut()
+                            navController.navigate(Routes.LOGIN) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp,
+                            contentDescription = "Terminar Sessão"
+                        )
                     }
                 }
             )

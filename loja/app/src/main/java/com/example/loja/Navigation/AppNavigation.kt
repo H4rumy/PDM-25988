@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.loja.view.CarrinhoScreen
+import com.example.loja.view.CompartilharCarrinhoScreen
 import com.example.loja.view.LoginScreen
 import com.example.loja.view.ProdutosScreen
 import com.example.loja.viewmodel.LoginViewModel
@@ -27,21 +28,13 @@ fun AppNavigation(
     startDestination: String = Routes.LOGIN
 ) {
     val context = LocalContext.current
-    val loginViewModel: LoginViewModel = viewModel(
-        factory = LoginViewModel.provideFactory(context.applicationContext as Application)
-    )
+    val loginViewModel: LoginViewModel = viewModel()
 
-    // Observar o estado do usuário atual
-    val currentUser by loginViewModel.currentUser.collectAsState()
-
-    // Determinar a rota inicial baseada no estado de autenticação
-    val initialRoute = remember(currentUser) {
-        if (currentUser != null) Routes.PRODUTOS else Routes.LOGIN
-    }
+    val startDestination = if (loginViewModel.isUserLoggedIn()) Routes.PRODUTOS else Routes.LOGIN
 
     NavHost(
         navController = navController,
-        startDestination = initialRoute // Usar initialRoute ao invés de startDestination
+        startDestination = Routes.LOGIN
     ) {
         composable(Routes.LOGIN) {
             LoginScreen(navController = navController, viewModel = loginViewModel)
@@ -55,8 +48,12 @@ fun AppNavigation(
         composable(Routes.CARRINHO) {
             CarrinhoScreen(navController = navController)
         }
-        composable(Routes.PRODUTOCARDCARRINHO) {
-            CarrinhoScreen(navController = navController)
+        composable(Routes.PARTILHARCARRINHO) {
+            CompartilharCarrinhoScreen(navController = navController)
         }
+        composable(Routes.CARRINHOSRECEBIDOS) {
+            com.example.loja.view.CarrinhosRecebidosScreen(navController = navController)
+        }
+
     }
 }

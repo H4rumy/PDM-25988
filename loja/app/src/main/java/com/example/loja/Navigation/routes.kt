@@ -7,5 +7,7 @@ object Routes {
     const val PRODUTOS = "produtos"
     const val REGISTO = "registo"
     const val PRODUTOCARDCARRINHO = "produtoCardCarrinho"
+    const val PARTILHARCARRINHO = "partilharcarrinho"
+    const val CARRINHOSRECEBIDOS = "carrinhosrecebidos"
 
 }

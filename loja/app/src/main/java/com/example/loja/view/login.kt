@@ -54,20 +54,12 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavController, viewModel: LoginViewModel) {
-    val loginViewModel: LoginViewModel = viewModel()
-    val email by loginViewModel.email.collectAsState()
-    val password by loginViewModel.password.collectAsState()
-    val errorMessage by loginViewModel.errorMessage.collectAsState()
-    val isLoading by loginViewModel.isLoading.collectAsState()
-    val isLoginSuccessful by loginViewModel.isLoginSuccessful.collectAsState()
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val scope = rememberCoroutineScope()
 
-    LaunchedEffect(isLoginSuccessful) {
-        if (isLoginSuccessful) {
-            navController.navigate(PRODUTOS) {
-                popUpTo("login") { inclusive = true }
-            }
-        }
-    }
 
     Box(
         modifier = Modifier
@@ -127,7 +119,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel) {
                     // Campo de Email
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { loginViewModel.onEmailChange(it) },
+                        onValueChange = { email = it },
                         label = { Text("Email") },
                         leadingIcon = {
                             Icon(
@@ -148,7 +140,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel) {
                     var passwordVisible by remember { mutableStateOf(false) }
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { loginViewModel.onPasswordChange(it) },
+                        onValueChange = { password = it },
                         label = { Text("Senha") },
                         leadingIcon = {
                             Icon(
@@ -188,9 +180,11 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel) {
                     // Botão de Login
                     Button(
                         onClick = {
-                            if (!isLoading) {
-                                viewModel.viewModelScope.launch {
-                                    viewModel.signIn(email, password)
+                            scope.launch {
+                                if (viewModel.signIn(email, password)) {
+                                    navController.navigate(Routes.PRODUTOS) {
+                                        popUpTo(Routes.LOGIN) { inclusive = true }
+                                    }
                                 }
                             }
                         },
