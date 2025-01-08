@@ -59,7 +59,7 @@ fun CarrinhoScreen(navController: NavController, userId: String? = null) {
             TopAppBar(
                 title = {
                     Text(
-                        text = if (userId != null) "Carrinho de ${ownerEmail.value}" else "Meu Carrinho",
+                        text = if (userId != null) "Carrinho Recebido" else "Meu Carrinho",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF333333)
@@ -76,14 +76,17 @@ fun CarrinhoScreen(navController: NavController, userId: String? = null) {
                     }
                 },
                 actions = {
-                    // Botão de compartilhar
-                    IconButton(onClick = { navController.navigate(Routes.PARTILHARCARRINHO) }) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = "Compartilhar Carrinho",
-                            tint = Orange
-                        )
+                    if (userId == null) {
+                        // Botão de compartilhar
+                        IconButton(onClick = { navController.navigate(Routes.PARTILHARCARRINHO) }) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Compartilhar Carrinho",
+                                tint = Orange
+                            )
+                        }
                     }
+
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.White,

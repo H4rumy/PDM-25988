@@ -33,7 +33,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
         _isLoading.value = true
         return try {
-            auth.signInWithEmailAndPassword(email, password).await()
+            auth.signInWithEmailAndPassword(email.trim(), password).await()
             _errorMessage.value = ""
             true
         } catch (e: Exception) {

@@ -34,12 +34,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.loja.viewmodel.AppUser
+import com.example.loja.classes.User
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MultiSelectDropdown(
-    usuarios: List<AppUser>,
+    usuarios: List<User>,
     selecionados: Set<String>,
     onSelectionChange: (String) -> Unit
 ) {
@@ -51,11 +51,12 @@ fun MultiSelectDropdown(
             value = searchText,
             onValueChange = { searchText = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Pesquisar usuários") },
+            label = { Text("Pesquisar users") },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Orange,
                 focusedLabelColor = Orange,
-                cursorColor = Orange
+                cursorColor = Orange,
+                unfocusedBorderColor = Color(0xFFE0E0E0)
             ),
             trailingIcon = {
                 IconButton(onClick = { expanded = !expanded }) {
@@ -63,7 +64,7 @@ fun MultiSelectDropdown(
                         if (expanded) Icons.Default.KeyboardArrowUp
                         else Icons.Default.KeyboardArrowDown,
                         "Expandir",
-                        tint = Orange
+                        tint = if (expanded) Orange else Color(0xFF666666)
                     )
                 }
             }
@@ -73,12 +74,25 @@ fun MultiSelectDropdown(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 300.dp)
+                .fillMaxWidth(0.9f) // Ajustado para corresponder ao TextField
+                .heightIn(max = 250.dp) // Altura máxima reduzida
                 .background(Color.White)
         ) {
-            val filteredUsers = usuarios.filter {
-                it.email.contains(searchText, ignoreCase = true)
+            val filteredUsers = usuarios
+                .filter { it.email.contains(searchText, ignoreCase = true) }
+                .take(10) // Limita a 10 resultados para melhor performance
+
+            if (filteredUsers.isEmpty()) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            "Nenhum user encontrado",
+                            color = Color(0xFF666666)
+                        )
+                    },
+                    onClick = { },
+                    enabled = false
+                )
             }
 
             filteredUsers.forEach { usuario ->
@@ -96,13 +110,16 @@ fun MultiSelectDropdown(
                                 Icon(
                                     Icons.Default.Check,
                                     contentDescription = "Selecionado",
-                                    tint = Orange
+                                    tint = Orange,
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
                     },
                     onClick = {
                         onSelectionChange(usuario.uid)
+                        // Não fecha o dropdown ao selecionar
+                        searchText = "" // Limpa a pesquisa após seleção
                     },
                     colors = MenuDefaults.itemColors(
                         textColor = Color(0xFF333333)
@@ -110,33 +127,35 @@ fun MultiSelectDropdown(
                 )
             }
         }
-    }
 
-    // Chips dos selecionados
-    FlowRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        selecionados.forEach { userId ->
-            usuarios.find { it.uid == userId }?.let { usuario ->
-                AssistChip(
-                    onClick = { onSelectionChange(userId) },
-                    label = { Text(usuario.email) },
-                    trailingIcon = {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Remover",
-                            modifier = Modifier.size(16.dp)
+        // Chips dos selecionados
+        if (selecionados.isNotEmpty()) {
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                selecionados.forEach { userId ->
+                    usuarios.find { it.uid == userId }?.let { usuario ->
+                        AssistChip(
+                            onClick = { onSelectionChange(userId) },
+                            label = { Text(usuario.email) },
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Remover",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = Orange.copy(alpha = 0.1f),
+                                labelColor = Orange,
+                                trailingIconContentColor = Orange
+                            )
                         )
-                    },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = Orange.copy(alpha = 0.1f),
-                        labelColor = Orange,
-                        trailingIconContentColor = Orange
-                    )
-                )
+                    }
+                }
             }
         }
     }

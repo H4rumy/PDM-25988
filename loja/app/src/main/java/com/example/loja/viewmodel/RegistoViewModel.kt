@@ -7,6 +7,9 @@ import com.example.loja.classes.User
 import com.example.loja.repository.AuthRepository
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +20,7 @@ import kotlinx.coroutines.tasks.await
 class RegistoViewModel : ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val firestore = Firebase.firestore
 
     // Estados para email, palavra-passe, confirmação, erro e carregamento
     private val _email = MutableStateFlow("")
@@ -50,21 +54,55 @@ class RegistoViewModel : ViewModel() {
     }
 
     suspend fun signUp(email: String, password: String, confirmPassword: String) {
-        _isLoading.value = true
-        _errorMessage.value = ""
-
-        if (password != confirmPassword) {
-            _errorMessage.value = "As palavras-passe não coincidem."
-            _isLoading.value = false
-            return
-        }
-
         try {
-            auth.createUserWithEmailAndPassword(email, password).await()
-            _isRegistrationSuccessful.value = true
+            _isLoading.value = true
+            _errorMessage.value = ""
+
+            // Validações
+            if (email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                _errorMessage.value = "Preencha todos os campos"
+                return
+            }
+
+            if (password != confirmPassword) {
+                _errorMessage.value = "As senhas não coincidem"
+                return
+            }
+
+            if (password.length < 6) {
+                _errorMessage.value = "A senha deve ter pelo menos 6 caracteres"
+                return
+            }
+
+            // Criar usuário no Firebase
+            val result = auth.createUserWithEmailAndPassword(email.trim(), password).await()
+
+            // Se chegou aqui, o registro foi bem sucedido
+            val user = result.user
+            if (user != null) {
+                // Salvar informações adicionais do usuário no Firestore
+                val userDoc = hashMapOf(
+                    "email" to email.trim(),
+                    "uid" to user.uid
+                )
+
+                firestore.collection("user")
+                    .document(user.uid)
+                    .set(userDoc)
+                    .await()
+
+                _isRegistrationSuccessful.value = true
+            }
+
+        } catch (e: FirebaseAuthWeakPasswordException) {
+            _errorMessage.value = "A senha é muito fraca"
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            _errorMessage.value = "Email inválido"
+        } catch (e: FirebaseAuthUserCollisionException) {
+            _errorMessage.value = "Este email já está em uso"
         } catch (e: Exception) {
-            _errorMessage.value = e.message ?: "Erro ao registar."
-            _isRegistrationSuccessful.value = false
+            _errorMessage.value = "Erro ao criar conta: ${e.message}"
+            Log.e("RegistoViewModel", "Erro no registro", e)
         } finally {
             _isLoading.value = false
         }

@@ -3,6 +3,7 @@ package com.example.loja.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.loja.classes.CarrinhoCompartilhado
+import com.example.loja.classes.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserInfo
 import com.google.firebase.firestore.FirebaseFirestore
@@ -19,8 +20,8 @@ class PartilharViewModel : ViewModel() {
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
-    private val _todosUsers = MutableStateFlow<List<AppUser>>(emptyList())
-    val todosUsers: StateFlow<List<AppUser>> = _todosUsers
+    private val _todosUsers = MutableStateFlow<List<User>>(emptyList())
+    val todosUsers: StateFlow<List<User>> = _todosUsers
 
     private val _usersSelecionados = MutableStateFlow<Set<String>>(emptySet())
     val usersSelecionados: StateFlow<Set<String>> = _usersSelecionados
@@ -35,22 +36,29 @@ class PartilharViewModel : ViewModel() {
 
     private fun carregarUsers() {
         val currentUserId = auth.currentUser?.uid ?: return
+        println("DEBUG: Iniciando carregamento de usuários")
+        println("DEBUG: CurrentUserId = $currentUserId")
 
         firestore.collection("user")
             .whereNotEqualTo("uid", currentUserId)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) return@addSnapshotListener
-
-                val users = snapshot?.documents?.mapNotNull { doc ->
-                    doc.getString("email")?.let { email ->
-                        AppUser(
-                            uid = doc.id,
-                            email = email
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val users = snapshot.documents.mapNotNull { doc ->
+                    try {
+                        User( // Alterado para User
+                            uid = doc.getString("uid") ?: doc.id,
+                            email = doc.getString("email") ?: return@mapNotNull null
                         )
+                    } catch (e: Exception) {
+                        println("Erro ao converter documento: ${doc.data}")
+                        null
                     }
-                } ?: emptyList()
-
+                }
+                println("Usuários carregados: $users")
                 _todosUsers.value = users
+            }
+            .addOnFailureListener { e ->
+                println("Erro ao carregar usuários: ${e.message}")
             }
     }
 
@@ -171,8 +179,3 @@ class PartilharViewModel : ViewModel() {
         awaitClose { listener.remove() }
     }
 }
-
-data class AppUser(
-    val uid: String,
-    val email: String
-)
